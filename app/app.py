@@ -28,10 +28,10 @@ future_traffic = pd.read_parquet(FUTURE_FORECAST_PATH)
 # Prediction function
 def predict_traffic(model, scaler, future_traffic, site, date, time_of_day):
     time_of_day_features = {
-        'Morning': [1, 0, 0, 0],
-        'Afternoon': [0, 1, 0, 0],
-        'Evening': [0, 0, 1, 0],
-        'Night': [0, 0, 0, 1]
+        'Morning': [1, 0, 0, 0],  # Morning: 6 AM to 12 PM
+        'Afternoon': [0, 1, 0, 0],  # Afternoon: 12 PM to 6 PM
+        'Evening': [0, 0, 1, 0],  # Evening: 6 PM to 12 AM
+        'Night': [0, 0, 0, 1]  # Night: 12 AM to 6 AM
     }
 
     future_traffic['ds'] = pd.to_datetime(future_traffic['ds']).dt.date
