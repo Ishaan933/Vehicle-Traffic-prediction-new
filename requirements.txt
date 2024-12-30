@@ -5,3 +5,4 @@ scikit-learn
 prophet
 joblib
 gunicorn
+pyarrow
