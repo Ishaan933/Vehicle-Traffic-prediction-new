@@ -1,16 +1,28 @@
 from flask import Flask, request, render_template, jsonify
 import pandas as pd
 import joblib
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import MinMaxScaler
 
 app = Flask(__name__)
 
-# Load model, scaler, and forecast data
+# Paths to necessary files
 MODEL_PATH = "app/model/vehicle_traffic_prediction_model.pkl"
 SCALER_PATH = "app/model/vehicle_traffic_scaler_total.pkl"
+DATASET_PATH = "dataset/filtered_date_traffic_activity_data.parquet"
 FUTURE_FORECAST_PATH = "dataset/future_traffic_forecast.parquet"
 
+# Load dataset
+try:
+    df = pd.read_parquet(DATASET_PATH)
+except FileNotFoundError:
+    raise FileNotFoundError(f"Dataset file not found at {DATASET_PATH}. Please ensure it exists.")
+
+# Load model and scaler
 model = joblib.load(MODEL_PATH)
 scaler = joblib.load(SCALER_PATH)
+
+# Load future forecast data
 future_traffic = pd.read_parquet(FUTURE_FORECAST_PATH)
 
 # Prediction function
@@ -23,8 +35,8 @@ def predict_traffic(model, scaler, future_traffic, site, date, time_of_day):
     }
 
     future_traffic['ds'] = pd.to_datetime(future_traffic['ds']).dt.date
-    future_traffic['Site'] = future_traffic['Site'].str.strip().str.title()  # Change to title case
-    site = site.strip().title()  # Change to title case
+    future_traffic['Site'] = future_traffic['Site'].str.strip().str.title()  # Normalize case
+    site = site.strip().title()  # Normalize case
 
     future_row = future_traffic[(future_traffic['Site'] == site) & (future_traffic['ds'] == date)]
 
@@ -47,7 +59,7 @@ def predict_traffic(model, scaler, future_traffic, site, date, time_of_day):
         'TimeOfDay_Afternoon': [time_of_day_values[1]],
         'TimeOfDay_Evening': [time_of_day_values[2]],
         'TimeOfDay_Night': [time_of_day_values[3]],
-        **{f'Site_{s}': [int(s == site)] for s in future_traffic['Site'].unique()}
+        **{f"Site_{s}": [int(s == site)] for s in future_traffic['Site'].unique()}
     })
 
     # Ensure input columns match training columns
@@ -92,6 +104,6 @@ def predict():
         return jsonify({"error": "No forecasted data available for the selected input."}), 404
  
 if __name__ == '__main__':
-    # Use port from environment or default to 5000
-    port = int(os.environ.get('PORT', 5000))
+    # Use port from environment or default to 6000
+    port = int(os.environ.get('PORT', 6000))
     app.run(host='0.0.0.0', port=port)
