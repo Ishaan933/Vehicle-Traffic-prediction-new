@@ -82,7 +82,13 @@ def predict_traffic(model, scaler, future_traffic, site, date, time_of_day):
 @app.route("/")
 def index():
     return render_template("index.html")
-
+    
+@app.route("/sites", methods=["GET"])
+def get_sites():
+    # Get unique site names from the dataset
+    unique_sites = df["Site"].unique().tolist()
+    return jsonify({"sites": unique_sites})
+    
 @app.route("/predict", methods=["POST"])
 def predict():
     data = request.json
