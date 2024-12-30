@@ -10,7 +10,9 @@
     <h1>Traffic Prediction</h1>
     <form id="prediction-form">
         <label for="site">Select Site:</label>
-        <input type="text" id="site" name="site" required placeholder="e.g., Site_A">
+        <select id="site" name="site" required>
+            <option value="" disabled selected>Loading sites...</option>
+        </select>
 
         <label for="date">Select Date:</label>
         <input type="date" id="date" name="date" required>
@@ -28,6 +30,30 @@
     <div id="results"></div>
 
     <script>
+        // Fetch unique site names and populate the dropdown
+        async function fetchSites() {
+            const siteDropdown = document.getElementById('site');
+            try {
+                const response = await fetch('/sites');
+                const data = await response.json();
+
+                // Clear existing options and populate dropdown
+                siteDropdown.innerHTML = '<option value="" disabled selected>Select a site</option>';
+                data.sites.forEach(site => {
+                    const option = document.createElement('option');
+                    option.value = site;
+                    option.textContent = site;
+                    siteDropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching site names:', error);
+                siteDropdown.innerHTML = '<option value="" disabled>Error loading sites</option>';
+            }
+        }
+
+        // Initialize site dropdown on page load
+        window.onload = fetchSites;
+
         const form = document.getElementById('prediction-form');
         const resultsDiv = document.getElementById('results');
 
