@@ -10,7 +10,7 @@
     <h1>Traffic Prediction</h1>
     <form id="prediction-form">
         <label for="site">Select Site:</label>
-        <input type="text" id="site" name="site" required>
+        <input type="text" id="site" name="site" required placeholder="e.g., Site_A">
 
         <label for="date">Select Date:</label>
         <input type="date" id="date" name="date" required>
@@ -37,25 +37,29 @@
             const date = document.getElementById('date').value;
             const time_of_day = document.getElementById('time_of_day').value;
 
-            const response = await fetch('/predict', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ site, date, time_of_day })
-            });
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ site, date, time_of_day })
+                });
 
-            const result = await response.json();
+                const result = await response.json();
 
-            if (response.ok) {
-                resultsDiv.innerHTML = `
-                    <h2>Prediction Results:</h2>
-                    <p>Total Traffic: ${result.total}</p>
-                    <p>Northbound: ${result.northbound}</p>
-                    <p>Southbound: ${result.southbound}</p>
-                    <p>Eastbound: ${result.eastbound}</p>
-                    <p>Westbound: ${result.westbound}</p>
-                `;
-            } else {
-                resultsDiv.innerHTML = `<p>Error: ${result.error}</p>`;
+                if (response.ok) {
+                    resultsDiv.innerHTML = `
+                        <h2>Prediction Results:</h2>
+                        <p><strong>Total Traffic:</strong> ${result.total}</p>
+                        <p><strong>Northbound:</strong> ${result.northbound}</p>
+                        <p><strong>Southbound:</strong> ${result.southbound}</p>
+                        <p><strong>Eastbound:</strong> ${result.eastbound}</p>
+                        <p><strong>Westbound:</strong> ${result.westbound}</p>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<p>Error: ${result.error}</p>`;
+                }
+            } catch (err) {
+                resultsDiv.innerHTML = `<p>Failed to fetch prediction. Please try again later.</p>`;
             }
         });
     </script>
