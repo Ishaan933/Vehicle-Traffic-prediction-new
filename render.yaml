@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: traffic-prediction-app
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn app.app:app
+    plan: free
