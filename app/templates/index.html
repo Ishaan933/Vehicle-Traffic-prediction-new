@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Prediction</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>Traffic Prediction</h1>
+    <form id="prediction-form">
+        <label for="site">Select Site:</label>
+        <input type="text" id="site" name="site" required>
+
+        <label for="date">Select Date:</label>
+        <input type="date" id="date" name="date" required>
+
+        <label for="time_of_day">Select Time of Day:</label>
+        <select id="time_of_day" name="time_of_day" required>
+            <option value="Morning">Morning</option>
+            <option value="Afternoon">Afternoon</option>
+            <option value="Evening">Evening</option>
+            <option value="Night">Night</option>
+        </select>
+
+        <button type="submit">Predict</button>
+    </form>
+    <div id="results"></div>
+
+    <script>
+        const form = document.getElementById('prediction-form');
+        const resultsDiv = document.getElementById('results');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const site = document.getElementById('site').value;
+            const date = document.getElementById('date').value;
+            const time_of_day = document.getElementById('time_of_day').value;
+
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ site, date, time_of_day })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                resultsDiv.innerHTML = `
+                    <h2>Prediction Results:</h2>
+                    <p>Total Traffic: ${result.total}</p>
+                    <p>Northbound: ${result.northbound}</p>
+                    <p>Southbound: ${result.southbound}</p>
+                    <p>Eastbound: ${result.eastbound}</p>
+                    <p>Westbound: ${result.westbound}</p>
+                `;
+            } else {
+                resultsDiv.innerHTML = `<p>Error: ${result.error}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
