@@ -9,30 +9,42 @@
 <body>
     <h1>Traffic Prediction</h1>
     <form id="prediction-form">
-        <label for="site">Select Site:</label>
-        <select id="site" name="site" required>
-            <option value="" disabled selected>Loading sites...</option>
-        </select>
+        <div class="form-group">
+            <label for="site">Select Site:</label>
+            <select id="site" name="site" required aria-label="Select site for traffic prediction">
+                <option value="" disabled selected>Loading sites...</option>
+            </select>
+        </div>
 
-        <label for="date">Select Date:</label>
-        <input type="date" id="date" name="date" required>
+        <div class="form-group">
+            <label for="date">Select Date:</label>
+            <input type="date" id="date" name="date" required aria-label="Select a date for traffic prediction">
+        </div>
 
-        <label for="time_of_day">Select Time of Day:</label>
-        <select id="time_of_day" name="time_of_day" required>
-            <option value="Morning">Morning (6 AM - 12 PM)</option>
-            <option value="Afternoon">Afternoon (12 PM - 6 PM)</option>
-            <option value="Evening">Evening (6 PM - 12 AM)</option>
-            <option value="Night">Night (12 AM - 6 AM)</option>
-        </select>
+        <div class="form-group">
+            <label for="time_of_day">Select Time of Day:</label>
+            <select id="time_of_day" name="time_of_day" required aria-label="Select time of day for traffic prediction">
+                <option value="Morning">Morning (6 AM - 12 PM)</option>
+                <option value="Afternoon">Afternoon (12 PM - 6 PM)</option>
+                <option value="Evening">Evening (6 PM - 12 AM)</option>
+                <option value="Night">Night (12 AM - 6 AM)</option>
+            </select>
+        </div>
 
-        <button type="submit">Predict</button>
+        <div class="form-group">
+            <button type="submit" aria-label="Submit prediction request">Predict</button>
+        </div>
     </form>
+    <div id="loading" style="display:none;">Loading...</div>
     <div id="results"></div>
 
     <script>
         // Fetch unique site names and populate the dropdown
         async function fetchSites() {
             const siteDropdown = document.getElementById('site');
+            const loadingDiv = document.getElementById('loading');
+            loadingDiv.style.display = 'block'; // Show loading spinner
+
             try {
                 const response = await fetch('/sites');
                 const data = await response.json();
@@ -48,6 +60,8 @@
             } catch (error) {
                 console.error('Error fetching site names:', error);
                 siteDropdown.innerHTML = '<option value="" disabled>Error loading sites</option>';
+            } finally {
+                loadingDiv.style.display = 'none'; // Hide loading spinner
             }
         }
 
@@ -56,18 +70,31 @@
 
         const form = document.getElementById('prediction-form');
         const resultsDiv = document.getElementById('results');
+        const loadingDiv = document.getElementById('loading');
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
             const site = document.getElementById('site').value;
-            const date = document.getElementById('date').value;
+            const date = new Date(document.getElementById('date').value);
             const time_of_day = document.getElementById('time_of_day').value;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Validate that the date is not in the past
+            if (date < today) {
+                resultsDiv.innerHTML = `<p>Please select a future date.</p>`;
+                return;
+            }
+
+            // Show loading spinner
+            loadingDiv.style.display = 'block';
 
             try {
                 const response = await fetch('/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ site, date, time_of_day })
+                    body: JSON.stringify({ site, date: date.toISOString().split('T')[0], time_of_day })
                 });
 
                 const result = await response.json();
@@ -85,7 +112,10 @@
                     resultsDiv.innerHTML = `<p>Error: ${result.error}</p>`;
                 }
             } catch (err) {
+                console.error('Error during prediction request:', err);
                 resultsDiv.innerHTML = `<p>Failed to fetch prediction. Please try again later.</p>`;
+            } finally {
+                loadingDiv.style.display = 'none'; // Hide loading spinner
             }
         });
     </script>
